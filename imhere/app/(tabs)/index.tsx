@@ -1,70 +1,135 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList, Alert } from "react-native";
+import Participant from "@/components/Participant/Participant";
+import { useEffect, useState } from "react";
 
 export default function HomeScreen() {
+  const [participants, setParticipants] = useState<string[]>([]);
+  const [participantName, setParticipantName] = useState("");
+
+  function handleParticipantAdd() {
+    if(participantName == "") {
+      return Alert.alert("Nome do participante", "Digite o nome do participante.");
+    }
+    if(participants.includes(participantName)) {
+      return Alert.alert("Participante existe", "Alice já está na lista de presença.");
+    }
+    setParticipants(prevState => [...prevState, participantName]);
+    setParticipantName("");
+  }
+  function handleParticipantRemove(name: string) {
+    Alert.alert("Remover", `Remover o participante ${name}?`,
+      [
+        {
+          text: "Não",
+          style: "cancel"
+        },
+        {
+          text: "Sim",
+          onPress: () => setParticipants(prevState => prevState.filter(participant => participant !== name))
+        }
+      ]
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View
+      style={styles.container}
+    >
+      <Text
+        style={styles.eventName}
+      >
+        Nome do evento
+      </Text>
+      <Text
+        style={styles.eventDate}
+      >
+        Quinta, 23 de Maio de 2024.
+      </Text>
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Nome do Participante"
+          placeholderTextColor={'#6B6B6B'}
+          onChangeText={setParticipantName}
+          value={participantName}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleParticipantAdd}
+        >
+          <Text style={styles.buttonText}>+</Text>
+        </TouchableOpacity>
+      </View>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={participants}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <Participant name={item} onRemove={handleParticipantRemove} />
+          )}
+          ListEmptyComponent={() => (
+            <Text style={styles.listEmptyText}>
+              Ninguem chegou no evento ainda? Adicione os participantes a sua lista de presença.
+            </Text>
+          )
+          }
+        />   
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#131016',
+    padding: 24,
+  },
+  eventName: {
+    color: '#FFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 48,
+  },
+  eventDate: {
+    color: '#6B6B6B',
+    fontSize: 16,
+  },
+  input: {
+    flex: 1,
+    height: 56,
+    backgroundColor: '#1F1E25',
+    borderRadius: 5,
+    padding: 16,
+    fontSize: 16,
+    color: '#FFFF',
+    marginRight: 12
+  },
+  button: {
+    width: 56,
+    height: 56,
+    borderRadius: 5,
+    backgroundColor: '#31CF67',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#FFFF',
+    fontSize: 24,
+  },
+  form: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginTop: 36,
+    marginBottom: 42,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  participantText: {
+    color: '#FFFF',
+    fontSize: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  listEmptyText: {
+    color: '#FFFF',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
